@@ -8,10 +8,14 @@ import { AddTransaction } from './components/AddTransaction';
 import { GlobalProvider } from './context/GlobalState';
 
 import './App.css';
+import NavBar from './components/NavBar';
 
 function App() {
   return (
+    <>
+    
     <GlobalProvider>
+      <NavBar/>
       <Header />
       <div className="container">
         <Balance />
@@ -20,6 +24,7 @@ function App() {
         <AddTransaction />
       </div>
     </GlobalProvider>
+    </>
   );
 }
 

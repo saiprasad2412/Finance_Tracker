@@ -5,6 +5,7 @@ require('dotenv').config()
 const {reddirSync}=require('fs');
 // const transactionRouter = require('./routes/transactions.routes.js');
 const router = require('./routes/transactions.routes.js');
+const userRouter=require('./routes/user.routes.js');
 const PORT =process.env.PORT || 5000;
 const app =express();
 
@@ -14,7 +15,8 @@ app.use(cors());
 
 
 //routes
-app.use('/api/v1/transactions',router)
+app.use('/api/v1/transactions',router);
+app.use('/api/v1/users',userRouter);
 const server=()=>{
     connectDB().then(()=>{
         console.log('Db connected')
