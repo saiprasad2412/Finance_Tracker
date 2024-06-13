@@ -1,34 +1,34 @@
-const mongoose=require('mongoose');
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
-const bcrypt=require('bcrypt')
+const bcrypt = require('bcrypt')
 
-const userSchema= new mongoose.Schema({
-    name:{
-        type:String,
-        required:[true,'Name is required'],
+const userSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: [true, 'Name is required'],
     },
-    email:{
-        type:String,
-        required:[true,'Email is required'],
-        unique:true
+    email: {
+        type: String,
+        required: [true, 'Email is required'],
+        unique: true
     },
-    password:{
-        type:String,
-        required:[true,'Password is required'],
-        minLength:[6,'Password must be at least 6 characters']
+    password: {
+        type: String,
+        required: [true, 'Password is required'],
+        minLength: [6, 'Password must be at least 6 characters']
     }
-},{timestamps:true});
+}, { timestamps: true });
 
-userSchema.pre('save', async function (next){
-    if(!this.isModified('password'))return next();
-    this.password= await bcrypt.hash(this.password,10);
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) return next();
+    this.password = await bcrypt.hash(this.password, 10);
     next();
 })
 
-userSchema.methods.isPasswordCorrect= async function (password){
-    return await bcrypt.compare(password,this.password)
+userSchema.methods.isPasswordCorrect = async function (password) {
+    return await bcrypt.compare(password, this.password)
 }
-userSchema.methods.generateAccessToken = function(){
+userSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
             _id: this._id,
@@ -42,11 +42,11 @@ userSchema.methods.generateAccessToken = function(){
         }
     )
 }
-userSchema.methods.generateRefreshToken = function(){
+userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
             _id: this._id,
-            
+
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
@@ -55,4 +55,4 @@ userSchema.methods.generateRefreshToken = function(){
     )
 }
 
-module.exports=mongoose.model('User',userSchema)
+module.exports = mongoose.model('User', userSchema)

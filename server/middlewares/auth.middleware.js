@@ -8,37 +8,48 @@ const User = require('../models/user.model');
 //     next()
 // };
 
-exports.JWTverify =  (req, res, next) => {
+exports.JWTverify = async (req, res, next) => {
     try {
-       console.log("inside authorized ",req.cookie) 
-       //req.cookies.accessToken
-        const token = req.cookie;
-        console.log("token",token);
+        // authenticate user
+        console.log("inside authorized ")
+        const authHeader = req.cookies.accessToken;
+        // const token = authHeader && authHeader.split(" ")[1];
+
+        console.log("token", authHeader);
+
+        if (!token) {
+            return res.status(401).json({ message: " Token  not found" })
+        }
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        const user = await User.findById(decodedToken._id).select("-password -refreshToken");
+        if (!user) {
+            return res.status(401).json({ message: "Unauthorized user" })
+        }
+        req.user = user
         next()
     } catch (error) {
-        throw error?.message;
-
+        console.log(error)
     }
-};
+}
 
-// async(req,res)=>{
+// async (req, res) => {
 //     try {
-//         console.log("hehjndv",req)
-//         const token=  req.cookies.accessToken
-//         console.log("token",token);
-//         if(!token){
-//             return res.status(401).json({message:" Token  not found"})
-//         } 
-//         const decodedToken=jwt.verify(token,process.env.ACCESS_TOKEN_SECRET);
-//         const user = await User.findById(decodedToken._id).select("-password -refreshToken");
-//         if(!user){
-//             return res.status(401).json({message:"Unauthorized user"})
+//         console.log("hehjndv", req)
+//         const token = req.cookies.accessToken
+//         console.log("token", token);
+//         if (!token) {
+//             return res.status(401).json({ message: " Token  not found" })
 //         }
-//         req.user=user
+//         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+//         const user = await User.findById(decodedToken._id).select("-password -refreshToken");
+//         if (!user) {
+//             return res.status(401).json({ message: "Unauthorized user" })
+//         }
+//         req.user = user
 //         next()
-            
+
 //     } catch (error) {
 //         console.log(error);
-//         res.status(401).json({message:"Unauthorized Token"})
+//         res.status(401).json({ message: "Unauthorized Token" })
 //     }
 // }

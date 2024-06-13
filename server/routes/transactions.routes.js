@@ -6,7 +6,7 @@ const { JWTverify } = require('../middlewares/auth.middleware');
 const router = express.Router();
 // router.use(JWTverify)
 
-router.post('/add-income',JWTverify,addIncome);
+router.post('/addincome',JWTverify,addIncome);
 router.get('/get-incomes',getIncome)
     .delete('/delete-income/:id',deleteIncome);
 

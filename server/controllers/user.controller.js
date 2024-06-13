@@ -1,6 +1,6 @@
-const User= require('../models/user.model')
+const User = require('../models/user.model')
 
-exports.generateAccessAndRefereshTokens = async(userId) =>{
+exports.generateAccessAndRefereshTokens = async (userId) => {
     try {
         const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
@@ -9,7 +9,7 @@ exports.generateAccessAndRefereshTokens = async(userId) =>{
         user.refreshToken = refreshToken
         await user.save({ validateBeforeSave: false })
 
-        return {accessToken, refreshToken}
+        return { accessToken, refreshToken }
 
 
     } catch (error) {
@@ -17,70 +17,76 @@ exports.generateAccessAndRefereshTokens = async(userId) =>{
     }
 }
 exports.registerUser = async (req, res) => {
-    const {name , email , password}=req.body;
-    if(!name || !email || !password){
-        return res.status(400).json({message:"All fields are required"})
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+        return res.status(400).json({ message: "All fields are required" })
     }
     try {
-        const existingUser= await User.findOne({email});
-        if(existingUser){
-            return res.status(400).json({message:"User already exists"})
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "User already exists" })
         }
-        const newUser= new User (req.body);
+        const newUser = new User(req.body);
         await newUser.save();
 
-        res.status(201).json({message:"User created successfully"})
+        res.status(201).json({ message: "User created successfully" })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({message:"Internal server error"})
-        
+        return res.status(500).json({ message: "Internal server error" })
+
     }
 }
-exports.loginUser=async(req,res)=>{
-    const {email , password}=req.body;
-    if(!email && !password){
-        return res.status(400).json({message:"All fields are required"})
+exports.loginUser = async (req, res) => {
+    const { email, password } = req.body;
+    if (!email && !password) {
+        return res.status(400).json({ message: "All fields are required" })
     }
     try {
-        
-        const user= await User.findOne({email});
-        if(!user){
-            return res.status(404).json({message:"User not found"})
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" })
         }
         const isPasswordValid = await user.isPasswordCorrect(password)
-        if(!isPasswordValid){
-            return res.status(401).json({message:"Invalid password"})
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: "Invalid password" })
         }
-        const {accessToken, refreshToken} = await this.generateAccessAndRefereshTokens(user._id)
-        console.log('accessToken',accessToken);
+        const { accessToken, refreshToken } = await this.generateAccessAndRefereshTokens(user._id)
+        console.log('accessToken', accessToken);
 
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+        const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
-    const options = {
-        httpOnly: true,
-        secure: false
-    }
-    return res
-    .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json({message:"User logged in successfully",loggedInUser, accessToken,refreshToken})  
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+        //set hearder.authorization
+        req.headers.authorization = `Bearer ${accessToken}`
+        res.status(200).json({
+            message: "User logged in successfully",
+            loggedInUser,
+            accessToken,
+            
+        })
+            // .cookie("abc", accessToken, options)
+            // .cookie("refreshToken", refreshToken, options)
+            // .json({ message: "User logged in successfully", loggedInUser, accessToken, refreshToken })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({message:"Internal server error"})
+        return res.status(500).json({ message: "Internal server error" })
     }
 }
-exports.logOutUser=async(req,res)=>{
+exports.logOutUser = async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $unset:{
-                refreshToken:1
+            $unset: {
+                refreshToken: 1
             },
-            
+
         },
-        {new:true}
-        
+        { new: true }
+
     )
     const options = {
         httpOnly: true,
@@ -88,8 +94,8 @@ exports.logOutUser=async(req,res)=>{
     }
 
     return res
-    .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
-    .json(new ApiResponse(200, {}, "User logged Out"))
+        .status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(new ApiResponse(200, {}, "User logged Out"))
 }
